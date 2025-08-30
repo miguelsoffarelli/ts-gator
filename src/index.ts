@@ -1,10 +1,16 @@
 import { CommandsRegistry, registerCommand, runCommand } from "./command";
 import { commandLogin } from "./command_login";
 import { argv } from "process";
+import { commandRegister } from "./command_register";
+import { commandReset } from "./command_reset";
+import { commandUsers } from "./command_users";
 
-function main() {
+async function main() {
   const registry: CommandsRegistry = {};
   registerCommand(registry, "login", commandLogin);
+  registerCommand(registry, "register", commandRegister);
+  registerCommand(registry, "reset", commandReset);
+  registerCommand(registry, "users", commandUsers);
 
   try {
     let args = argv.slice(2);  
@@ -15,7 +21,7 @@ function main() {
     const cmd = args[0];
     args = args.slice(1);
   
-    runCommand(registry, cmd, ...args);
+    await runCommand(registry, cmd, ...args);
 
   } catch (err) {
     if (err instanceof Error) {
@@ -26,6 +32,7 @@ function main() {
     process.exit(1);
   }
 
+  process.exit(0);
 }
 
 main();
