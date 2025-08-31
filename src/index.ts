@@ -4,6 +4,7 @@ import { argv } from "process";
 import { commandRegister } from "./command_register";
 import { commandReset } from "./command_reset";
 import { commandUsers } from "./command_users";
+import { commandAgg } from "./command_agg";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -11,6 +12,7 @@ async function main() {
   registerCommand(registry, "register", commandRegister);
   registerCommand(registry, "reset", commandReset);
   registerCommand(registry, "users", commandUsers);
+  registerCommand(registry, "agg", commandAgg);
 
   try {
     let args = argv.slice(2);  
