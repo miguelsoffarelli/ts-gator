@@ -1,4 +1,4 @@
-import { resetUsers } from "./db/queries/users";
+import { resetUsers } from "../db/queries/users";
 
 export async function commandReset(cmdName: string, ...args: string[]): Promise<void> {
     try {

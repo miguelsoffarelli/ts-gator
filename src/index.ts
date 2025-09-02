@@ -1,10 +1,12 @@
-import { CommandsRegistry, registerCommand, runCommand } from "./command";
-import { commandLogin } from "./command_login";
+import { CommandsRegistry, registerCommand, runCommand } from "./lib/commands/command";
+import { commandLogin } from "./lib/commands/command_login";
 import { argv } from "process";
-import { commandRegister } from "./command_register";
-import { commandReset } from "./command_reset";
-import { commandUsers } from "./command_users";
-import { commandAgg } from "./command_agg";
+import { commandRegister } from "./lib/commands/command_register";
+import { commandReset } from "./lib/commands/command_reset";
+import { commandUsers } from "./lib/commands/command_users";
+import { commandAgg } from "./lib/commands/command_agg";
+import { commandAddfeed } from "./lib/commands/command_addfeed";
+import { commandFeeds } from "./lib/commands/command_feeds";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -13,6 +15,8 @@ async function main() {
   registerCommand(registry, "reset", commandReset);
   registerCommand(registry, "users", commandUsers);
   registerCommand(registry, "agg", commandAgg);
+  registerCommand(registry, "addfeed", commandAddfeed);
+  registerCommand(registry, "feeds", commandFeeds);
 
   try {
     let args = argv.slice(2);  

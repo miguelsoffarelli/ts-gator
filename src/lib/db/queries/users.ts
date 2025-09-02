@@ -20,3 +20,8 @@ export async function getUsers() {
 export async function resetUsers() {
     await db.delete(users);
 }
+
+export async function getUserById(userID: string) {
+    const [result] = await db.select().from(users).where(eq(users.id, userID));
+    return result;
+}

@@ -1,5 +1,5 @@
-import { readConfig } from "./config";
-import { getUsers } from "./db/queries/users";
+import { readConfig } from "../../config";
+import { getUsers } from "../db/queries/users";
 
 export async function commandUsers(cmdName: string, ...args: string[]): Promise<void> {
     const users = await getUsers();

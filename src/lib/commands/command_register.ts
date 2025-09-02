@@ -1,5 +1,5 @@
-import { setUser } from "./config";
-import { createUser, getUser } from "./db/queries/users";
+import { setUser } from "../../config";
+import { createUser, getUser } from "../db/queries/users";
 
 export async function commandRegister(cmdName: string, ...args: string[]): Promise<void> {
     if (args.length === 0) {

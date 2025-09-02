@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { XMLParser } from "fast-xml-parser";
 
 type RSSFeed = {
@@ -66,3 +67,4 @@ export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
 
     return feed;
 }
+
