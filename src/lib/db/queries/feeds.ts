@@ -33,7 +33,7 @@ export async function createFeedFollow(userID: string, feedID: string) {
         user_id: userID,
         feed_id: feedID,
     }).returning();
-    const result = await db.select({
+    const [result] = await db.select({
         id: feedFollows.id,
         createdAt: feedFollows.createdAt,
         updatedAt: feedFollows.updatedAt,

@@ -13,6 +13,7 @@ import {
   commandFollow, 
   commandFollowing 
 } from "./lib/commands/command_feeds";
+import { middlewareLoggedIn } from "./lib/commands/middleware";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -21,10 +22,10 @@ async function main() {
   registerCommand(registry, "reset", commandReset);
   registerCommand(registry, "users", commandUsers);
   registerCommand(registry, "agg", commandAgg);
-  registerCommand(registry, "addfeed", commandAddfeed);
+  registerCommand(registry, "addfeed", middlewareLoggedIn(commandAddfeed));
   registerCommand(registry, "feeds", commandFeeds);
-  registerCommand(registry, "follow", commandFollow);
-  registerCommand(registry, "following", commandFollowing);
+  registerCommand(registry, "follow", middlewareLoggedIn(commandFollow));
+  registerCommand(registry, "following", middlewareLoggedIn(commandFollowing));
 
   try {
     let args = argv.slice(2);  
