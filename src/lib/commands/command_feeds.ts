@@ -1,4 +1,4 @@
-import { listFeeds, createFeed, getFeedByUrl, createFeedFollow, getFeedFollowsForUser } from "../db/queries/feeds";
+import { listFeeds, createFeed, getFeedByUrl, createFeedFollow, getFeedFollowsForUser, deleteFeedFollow } from "../db/queries/feeds";
 import { getUserById, getUser } from "../db/queries/users";
 import { Feed, User } from "../db/schema/schema";
 import { readConfig } from "../../config";
@@ -24,7 +24,7 @@ Created by user: ${user.name}
 
 export async function commandAddfeed(cmdName: string, user: User, ...args: string[]): Promise<void> {
     if (args.length !== 2) {
-        throw new Error("Missing arguments. Usage: addfeed <feed name> <feed url>");
+        throw new Error("Missing arguments. Usage: addfeed <feed_name> <feed_url>");
     }
 
     const feedName = args[0], feedURL = args[1];
@@ -52,7 +52,7 @@ export async function commandAgg(cmdName: string, ...args: string[]): Promise<vo
 
 export async function commandFollow(cmdName: string, user: User, ...args: string[]): Promise<void> {
     if (args.length !== 1) {
-        throw new Error("Must provide (only) one argument. Usage: follow <feed url>");
+        throw new Error("Must provide (only) one argument. Usage: follow <feed_url>");
     }
 
     const feedUrl = args[0];
@@ -76,4 +76,14 @@ export async function commandFollowing(cmdName: string, user: User, ...args: str
     for (const feed of follows) {
         console.log(`* ${feed.feedName}`);
     }
+}
+
+export async function commandUnfollow(cmdName: string, user: User, ...args: string[]): Promise<void> {
+    if (args.length !== 1) {
+        throw new Error("Usage: unfollow <feed_url>");
+    }
+
+    const feedUrl = args[0];
+    const unfollowedFeed = await deleteFeedFollow(user.id, feedUrl);
+    console.log(`User ${user.name} is no longer following ${feedUrl}`);
 }

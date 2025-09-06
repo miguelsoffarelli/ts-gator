@@ -11,7 +11,8 @@ import {
   commandAddfeed, 
   commandAgg, 
   commandFollow, 
-  commandFollowing 
+  commandFollowing, 
+  commandUnfollow
 } from "./lib/commands/command_feeds";
 import { middlewareLoggedIn } from "./lib/commands/middleware";
 
@@ -26,6 +27,7 @@ async function main() {
   registerCommand(registry, "feeds", commandFeeds);
   registerCommand(registry, "follow", middlewareLoggedIn(commandFollow));
   registerCommand(registry, "following", middlewareLoggedIn(commandFollowing));
+  registerCommand(registry, "unfollow", middlewareLoggedIn(commandUnfollow));
 
   try {
     let args = argv.slice(2);  
