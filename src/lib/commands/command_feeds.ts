@@ -1,4 +1,4 @@
-import { listFeeds, createFeed, getFeedByUrl, createFeedFollow, getFeedFollowsForUser, deleteFeedFollow } from "../db/queries/feeds";
+import { listFeeds, createFeed, getFeedByUrl, createFeedFollow, getFeedFollowsForUser, deleteFeedFollow, getNextFeedToFetch, markFeedFetched, getFeedById } from "../db/queries/feeds";
 import { getUserById, getUser } from "../db/queries/users";
 import { Feed, User } from "../db/schema/schema";
 import { readConfig } from "../../config";
@@ -35,7 +35,7 @@ export async function commandAddfeed(cmdName: string, user: User, ...args: strin
 
     const feedFollow = await createFeedFollow(user.id, feed.id);
     printFeed(feed, user);
-    console.log(`${feedFollow.userName} is now follwing ${feedFollow.feedName}`);
+    console.log(`${feedFollow.user_name} is now follwing ${feedFollow.feed_name}`);
 }
 
 async function printFeed(feed: Feed, user: User) {
@@ -46,8 +46,25 @@ async function printFeed(feed: Feed, user: User) {
 }
 
 export async function commandAgg(cmdName: string, ...args: string[]): Promise<void> {
-    const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
-    console.log(JSON.stringify(feed));
+    if (args.length !== 1) {
+        throw new Error("Usage: agg <time_between_reqs>");
+    }
+
+    const time_between_reqs = parseDuration(args[0]);
+    console.log(`Collecting feeds every ${args[0]}`);
+    await scrapeFeeds();
+
+    const interval = setInterval(() => {
+        scrapeFeeds().catch((e) => console.error(e));
+    }, time_between_reqs);
+
+    await new Promise<void>((resolve) => {
+      process.on("SIGINT", () => {
+        console.log("Shutting down feed aggregator...");
+        clearInterval(interval);
+        resolve();
+      });
+    });
 }
 
 export async function commandFollow(cmdName: string, user: User, ...args: string[]): Promise<void> {
@@ -62,7 +79,7 @@ export async function commandFollow(cmdName: string, user: User, ...args: string
     }
     
     const feedFollow = await createFeedFollow(user.id, feed.id);
-    console.log(`User ${feedFollow.userName} is now following feed ${feedFollow.feedName}`);
+    console.log(`User ${feedFollow.user_name} is now following feed ${feedFollow.feed_name}`);
 }
 
 export async function commandFollowing(cmdName: string, user: User, ...args: string[]): Promise<void> {
@@ -86,4 +103,34 @@ export async function commandUnfollow(cmdName: string, user: User, ...args: stri
     const feedUrl = args[0];
     const unfollowedFeed = await deleteFeedFollow(user.id, feedUrl);
     console.log(`User ${user.name} is no longer following ${feedUrl}`);
+}
+
+export async function scrapeFeeds() {
+    const nextFeed = await getNextFeedToFetch();
+    const markedFeed = await markFeedFetched(nextFeed.id);
+    const fetchedFeed = await fetchFeed(nextFeed.url);
+    for (const item of fetchedFeed.channel.item) {
+        console.log(item.title);
+    }
+}
+
+function parseDuration(durationStr: string): number {
+    const regex = /^(\d+)(ms|s|m|h)$/;
+    const match = durationStr.match(regex);
+    if (!match) {
+        throw new Error("invalid duration");
+    }
+
+    switch (match[2]) {
+        case "ms":
+            return Number(match[1]);
+        case "s":
+            return Number(match[1]) * 1000;
+        case "m":
+            return Number(match[1]) * 1000 * 60;
+        case "h":
+            return Number(match[1]) * 1000 * 3600;
+        default:
+            throw new Error("invalid duration");
+    }
 }

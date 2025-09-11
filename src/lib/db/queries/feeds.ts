@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 import { db } from "..";
 import { feedFollows, feeds, users } from "../schema/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getUserById } from "./users";
 
 export async function createFeed(feedName: string, feedURL: string, userID: string) {
@@ -35,12 +35,12 @@ export async function createFeedFollow(userID: string, feedID: string) {
     }).returning();
     const [result] = await db.select({
         id: feedFollows.id,
-        createdAt: feedFollows.createdAt,
-        updatedAt: feedFollows.updatedAt,
+        created_at: feedFollows.created_at,
+        updated_at: feedFollows.updated_at,
         userID: feedFollows.user_id,
         feedID: feedFollows.feed_id,
-        userName: users.name,
-        feedName: feeds.name,
+        user_name: users.name,
+        feed_name: feeds.name,
     }).from(feedFollows)
     .innerJoin(users, eq(feedFollows.user_id, users.id))
     .innerJoin(feeds, eq(feedFollows.feed_id, feeds.id))
@@ -51,8 +51,8 @@ export async function createFeedFollow(userID: string, feedID: string) {
 export async function getFeedFollowsForUser(userID: string) {
     const result = await db.select({
         id: feedFollows.id,
-        createdAt: feedFollows.createdAt,
-        updatedAt: feedFollows.updatedAt,
+        created_at: feedFollows.created_at,
+        updated_at: feedFollows.updated_at,
         userID: feedFollows.user_id,
         feedID: feedFollows.feed_id,
         userName: users.name,
@@ -73,5 +73,19 @@ export async function deleteFeedFollow(userId: string, feedUrl: string) {
     const [result] = await db.delete(feedFollows)
     .where(and(eq(feedFollows.user_id, userId), eq(feedFollows.feed_id, feed.id)))
     .returning();
+    return result;
+}
+
+export async function markFeedFetched(feedId: string) {
+    const result = await db.update(feeds).set({
+        last_fetched_at: new Date(),
+        updated_at: new Date(),
+    })
+    .where(eq(feeds.id, feedId));
+    return result;
+}
+
+export async function getNextFeedToFetch(){
+    const [result] = await db.select().from(feeds).orderBy(sql`${feeds.last_fetched_at} ASC NULLS FIRST`, feeds.created_at).limit(1);
     return result;
 }

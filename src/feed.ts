@@ -18,24 +18,37 @@ type RSSItem = {
 };
 
 export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
-    const req = await fetch(feedURL, {
-        method: "GET",
-        headers: {
-            "User-Agent": "gator",
-        },
-    });
+    const res = await fetch(feedURL, { headers: { "User-Agent": "gator" } });
+    if (!res.ok) {
+        console.warn("Bad status", res.status, feedURL);
+        return { channel: { title: "", link: "", description: "", item: [] } };
+    }
 
-    const res = await req.text();
-    const parser = new XMLParser();
-    const xmlFeed = parser.parse(res);
-    const feedObj = xmlFeed.rss;
+    let xml: string;
+    try {
+        xml = await res.text();
+    } catch (e) {
+        console.warn("Failed to read body", feedURL, e);
+        return { channel: { title: "", link: "", description: "", item: [] } };
+    }
 
-    if (!feedObj.channel) {
-        throw new Error("no channel found");
+    let parsed: any;
+    try {
+        parsed = new XMLParser().parse(xml);
+    } catch (e) {
+        console.warn("XML parse error", feedURL, e);
+        return { channel: { title: "", link: "", description: "", item: [] } };
+    }
+
+    const feedObj = parsed?.rss;
+    if (!feedObj?.channel) {
+        console.warn("No rss.channel", feedURL);
+        return { channel: { title: "", link: "", description: "", item: [] } };
     }
 
     if (!feedObj.channel.title || !feedObj.channel.description || !feedObj.channel.link) {
-        throw new Error("not enough info to display rss feed");
+        console.warn("not enough info to display rss feed");
+        return { channel: { title: "", link: "", description: "", item: [] } };
     }
 
     const title: string = feedObj.channel.title, link: string = feedObj.channel.link, description: string = feedObj.channel.description;
